@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <pwd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define DEFAULT_TAGS_HOME = "/"
 #define DEFAULT_TAGS_DIR = ".tags"
@@ -22,16 +26,52 @@ int usage()
 char *get_tags_dir()
 {
 
-    // char *dir = ;
-    // return;
+    struct passwd *pws;
+    pws = getpwuid(geteuid());
+
+    printf("username: %s \n", pws->pw_name);
+
+    char *dir = (char *)malloc(30 * sizeof(char));
+
+    printf("-------------1--------\n");
+    strcpy(dir, "/home/");
+    strcat(dir, pws->pw_name);
+    printf("-------------2--------\n");
+    strcat(dir, "/.tags");
+    printf("-------------3--------\n");
+
+    struct stat st = {0};
+    printf("-------------4--------\n");
+
+    if (stat(dir, &st) == -1)
+    {
+        printf("-------------5--------\n");
+
+        int check = mkdir(dir, 0700);
+        if (check == 0)
+        {
+            printf("work\n");
+        }
+        else
+        {
+            printf("not work\n");
+        }
+    }
+    else
+    {
+        printf("dir already exist\n");
+    }
+
+    return dir;
 }
 
 int get_tag_dir() {}
 
-int check_creat_base_folder()
+void check_creat_base_folder()
 {
+    char *dir = get_tags_dir();
+    free(dir);
 }
-
 int get_linked_file_name() {}
 
 int creat_tag() {}
@@ -52,16 +92,8 @@ int remove_tag() {}
 
 int main(int argc, char *argv[])
 {
-    system("dir");
-    // printf("%sred\n", KRED);
-    // printf("%sgreen\n", KGRN);
-    // printf("%syellow\n", KYEL);
-    // printf("%sblue\n", KBLU);
-    // printf("%smagenta\n", KMAG);
-    // printf("%scyan\n", KCYN);
-    // printf("%swhite\n", KWHT);
-    // printf("%snormal\n", KNRM);
-
+    // system("dir");
+    check_creat_base_folder();
     if (argc == 1)
     {
         usage();
@@ -100,7 +132,7 @@ int main(int argc, char *argv[])
     {
         usage();
     }
-    
+
     char cwd[1024];
     if (getcwd(cwd, sizeof(cwd)) != NULL)
         fprintf(stdout, "Current working dir: %s\n", cwd);
