@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+
     if (strcmp(argv[1], "add") == 0)
     {
         printf("add \n");
@@ -111,6 +112,7 @@ int main(int argc, char *argv[])
     else if (strcmp(argv[1], "addtag") == 0)
     {
         printf("addtag \n");
+
     }
     else if (strcmp(argv[1], "removetag") == 0)
     {
