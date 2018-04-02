@@ -28,41 +28,14 @@ char *get_tags_dir()
 
     struct passwd *pws;
     pws = getpwuid(geteuid());
+    char *dir = (char *)malloc(50 * sizeof(char));
+    // init dir
 
-    printf("username: %s \n", pws->pw_name);
-
-    char *dir = (char *)malloc(30 * sizeof(char));
-
-    printf("-------------1--------\n");
     strcpy(dir, "/home/");
-    strcat(dir, pws->pw_name);
-    printf("-------------2--------\n");
+    strcat(dir, pws->pw_name); // get dir with user name
     strcat(dir, "/.tags");
-    printf("-------------3--------\n");
 
-    struct stat st = {0};
-    printf("-------------4--------\n");
-
-    if (stat(dir, &st) == -1)
-    {
-        printf("-------------5--------\n");
-
-        int check = mkdir(dir, 0700);
-        if (check == 0)
-        {
-            printf("work\n");
-        }
-        else
-        {
-            printf("not work\n");
-        }
-    }
-    else
-    {
-        printf("dir already exist\n");
-    }
-
-    return dir;
+    return dir; //note: remember to free!!
 }
 
 int get_tag_dir() {}
@@ -70,6 +43,25 @@ int get_tag_dir() {}
 void check_creat_base_folder()
 {
     char *dir = get_tags_dir();
+
+    struct stat st = {0};
+    if (stat(dir, &st) == -1)
+    {
+        mkdir(dir, 0700);
+        // int check = mkdir(dir, 0700);
+        // if (check == 0)
+        // {
+        //     printf("base folder created \n");
+        // }
+        // else
+        // {
+        //     printf("STH WRONG with create base folder\n");
+        // }
+    }
+    // else
+    // {
+    //     printf("dir already exist\n");
+    // }
     free(dir);
 }
 int get_linked_file_name() {}
@@ -92,14 +84,18 @@ int remove_tag() {}
 
 int main(int argc, char *argv[])
 {
-    // system("dir");
+
+    // check & create if base folder exists
     check_creat_base_folder();
+
+
+
+
     if (argc == 1)
     {
         usage();
         return 0;
     }
-
 
     if (strcmp(argv[1], "add") == 0)
     {
@@ -112,7 +108,6 @@ int main(int argc, char *argv[])
     else if (strcmp(argv[1], "addtag") == 0)
     {
         printf("addtag \n");
-
     }
     else if (strcmp(argv[1], "removetag") == 0)
     {
