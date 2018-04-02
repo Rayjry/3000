@@ -51,7 +51,7 @@ char *get_tag_dir(char *tagname) // note: remember to free *tagdir
     return tagdir;
 }
 
-void check_creat_base_folder()
+void check_create_base_folder()
 {
     char *basedir = get_tags_dir();
 
@@ -79,7 +79,7 @@ void check_creat_base_folder()
     free(basedir);
 }
 
-void check_creat_tag_folder(char *tagname)
+void check_create_tag_folder(char *tagname)
 {
     // note: tmp tag name for testing
     // char *newtagname = (char *)malloc(50 * sizeof(char));
@@ -112,12 +112,12 @@ void check_creat_tag_folder(char *tagname)
 
 int add_tag(char *tagname)
 {
-    check_creat_tag_folder(tagname);
+    check_create_tag_folder(tagname);
 }
 
 int get_linked_file_name() {}
 
-int creat_tag() {}
+int create_tag() {}
 
 int delete_tag() {}
 
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 {
 
     // check & create if base folder exists
-    check_creat_base_folder();
+    check_create_base_folder();
 
     if (argc == 1)
     {
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
     if (strcmp(argv[1], "add") == 0)
     {
         printf("add \n");
-        check_creat_tag_folder(argv[2]);
+        check_create_tag_folder(argv[2]);
     }
     else if (strcmp(argv[1], "remove") == 0)
     {
