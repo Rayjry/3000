@@ -143,8 +143,6 @@ int add_file_tag(char *tagName) {
     //check_create_tag_folder(tagName);
 }
 
-int create_random_string() {}
-
 int search_tag() {}
 
 int list_tags() {
@@ -192,8 +190,6 @@ int remove_all_tag(){
 
     return 0;
 }
-
-
 
 int main(int argc, char *argv[])
 {
