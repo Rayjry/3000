@@ -110,6 +110,15 @@ void check_create_tag_folder(char *tagName)
     free(tagdir);
 }
 
+char *tag_exists(char *tagName) {
+    char *tagPath = get_tag_dir(tagName);
+    if (access(tagPath, F_OK) != -1){
+        printf("exist %s\n", tagPath);
+        return tagPath;
+    }
+    else
+    return NULL;
+}
 
 int get_linked_file_name() {}
 
@@ -118,21 +127,21 @@ int create_tag(char *tagName) {
 }
 
 int delete_tag(char *tagName) {
-    char *tag = get_tag_dir(tagName);
+    char *tag = tag_exists(tagName);
     char cmd[256];
+    if ( tag == NULL){
+        return -1;
+    }
+
     memset(cmd, '\0', sizeof(cmd));
     strcpy(cmd, "rm -R ");
     strcat(cmd, tag);
     system(cmd);
-
-
 }
 
-int tag_file(char *tagName) {
-    check_create_tag_folder(tagName);
+int add_file_tag(char *tagName) {
+    //check_create_tag_folder(tagName);
 }
-
-int tag_exists() {}
 
 int create_random_string() {}
 
@@ -167,7 +176,7 @@ int list_tags() {
     return 0;
 }
 
-int remove_tag() {}
+int remove_file_tag() {}
 
 int remove_all_tag(){
 
@@ -201,11 +210,12 @@ int main(int argc, char *argv[])
     if (strcmp(argv[1], "add") == 0)
     {
         printf("add \n");
-        tag_file(argv[2]);
+        add_file_tag(argv[2]);
     }
     else if (strcmp(argv[1], "remove") == 0)
     {
         printf("remove \n");
+        remove_file_tag();
     }
     else if ((strcmp(argv[1], "addtag") == 0) || (strcmp(argv[1], "at") == 0))
     {
@@ -226,10 +236,10 @@ int main(int argc, char *argv[])
         printf("list \n");
         list_tags();
     }
-    else if (strcmp(argv[1], "help") == 0)
+    else if (strcmp(argv[1], "exist") == 0)
     {
-        printf("help \n");
-        usage();
+        printf("exist \n");
+        tag_exists(argv[2]);
     }
     else if ((strcmp(argv[1], "removealltag") == 0) || (strcmp(argv[1], "rma") == 0))
     {
