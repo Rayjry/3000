@@ -18,8 +18,8 @@ int usage()
            "    add <filepath> <tagname>        - Link a tag with a file \n"
            "    remove <filepath> <tagname>     - Remove a tag from file \n"
            "    addtag | at <tagname>                - Create a new tag \n"
-           "    removetag <tagname>             - Delete a tag \n"
-           "    list                            - List all tags or list for a file \n"
+           "    removetag | rmt <tagname>             - Delete a tag \n"
+           "    list | ls                            - List all tags or list for a file \n"
            "    search <tagname>                - Search all files with a tag name \n");
     return 0;
 }
@@ -117,7 +117,16 @@ int create_tag(char *tagName) {
     check_create_tag_folder(tagName);
 }
 
-int delete_tag() {}
+int delete_tag(char *tagName) {
+    char *tag = get_tag_dir(tagName);
+    char cmd[256];
+    memset(cmd, '\0', sizeof(cmd));
+    strcpy(cmd, "rm -R ");
+    strcat(cmd, tag);
+    system(cmd);
+
+
+}
 
 int tag_file(char *tagName) {
     check_create_tag_folder(tagName);
@@ -164,7 +173,7 @@ int remove_all_tag(){
 
     struct dirent *de;  
     char *base_file = get_tags_dir();
-    char cmd[1024];
+    char cmd[256];
     memset(cmd, '\0', sizeof(cmd));
     strcpy(cmd, "rm -R ");
     strcat(cmd, base_file);
@@ -203,15 +212,16 @@ int main(int argc, char *argv[])
         printf("addtag \n");
         create_tag(argv[2]);
     }
-    else if (strcmp(argv[1], "removetag") == 0)
+    else if ((strcmp(argv[1], "removetag") == 0) || (strcmp(argv[1], "rmt") == 0))
     {
         printf("removetag \n");
+        delete_tag(argv[2]);
     }
     else if (strcmp(argv[1], "search") == 0)
     {
         printf("search \n");
     }
-    else if (strcmp(argv[1], "list") == 0)
+    else if ((strcmp(argv[1], "list") == 0) || (strcmp(argv[1], "ls") == 0))
     {
         printf("list \n");
         list_tags();
@@ -221,7 +231,8 @@ int main(int argc, char *argv[])
         printf("help \n");
         usage();
     }
-    else if ((strcmp(argv[1], "removealltag") == 0) || (strcmp(argv[1], "rma") == 0)){
+    else if ((strcmp(argv[1], "removealltag") == 0) || (strcmp(argv[1], "rma") == 0))
+    {
         printf("remove all tags \n");
         remove_all_tag();
     }
