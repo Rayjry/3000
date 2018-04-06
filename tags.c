@@ -243,10 +243,6 @@ void check_create_base_folder()
             printf("Failed to create base folder\n");
         }
     }
-    // else
-    // {
-    //     printf("basedir already exist\n");
-    // }
     free(basedir);
 }
 
@@ -266,11 +262,6 @@ void check_create_tag_folder(char *tagName)
             printf("Failed to create tag folder\n");
         }
     }
-    // else
-    // {
-    //     printf("tagdir already exist\n");
-    // }
-
     free(tagdir);
 }
 
