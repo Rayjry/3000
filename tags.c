@@ -383,7 +383,7 @@ void list_all_tags()
     if (dr == NULL)
     {
         printf("Could not open current directory");
-        return 0;
+        return;
     }
 
     while ((de = readdir(dr)) != NULL)
