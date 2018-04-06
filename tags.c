@@ -382,7 +382,7 @@ void remove_from_file(char *fileName, char *tagName)
 }
 
 
-int list_all_tags()
+void list_all_tags()
 {
     struct dirent *de;
     char *base_file = get_base_dir();
@@ -402,6 +402,4 @@ int list_all_tags()
     }
 
     closedir(dr);
-
-    return 0;
 }
