@@ -21,7 +21,8 @@ void check_create_base_folder();
 void check_create_tag_folder(char *tagName);
 char *get_current_directory(char *fileName);
 bool tag_exists(char *tagName);
-int ftwhelper(const char *name, const struct stat *status, int type);
+int ftwremove(const char *name, const struct stat *status, int type);
+int ftwsearch(const char *name, const struct stat *status, int type);
 
 //menu function
 void add_tag(char *tagName);
@@ -29,6 +30,7 @@ void remove_tag(char *tagName);
 void add_to_file(char *fileName, char *tagName);
 void remove_from_file(char *fileName, char *tagName);
 void list_all_tags();
+void search_file_for_tag(char *tagName);
 
 // undone: curent progress
 
@@ -37,51 +39,7 @@ void list_all_tags();
 
 // undone: check and rename
 
-
 /*
-int search_file_for_tag(char *tagName)
-{
-    char tagFile[256];
-    char *tag = tag_exists(tagName);
-    memset(tagFile, '\0', sizeof(tagFile));
-    if (tag == NULL)
-    {
-        printf("tag %s does not exist\n", tagName);
-        return -1;
-    }
-    else
-    {
-        strcpy(tagFile, tag);
-        struct dirent *de;
-        FILE *fp;
-        char buff[256];
-        DIR *dr = opendir(tagFile);
-        char fileName[256];
-        memset(fileName, '\0', sizeof(fileName));
-        if (dr == NULL)
-        {
-            printf("Could not open current directory");
-            return 0;
-        }
-
-        while ((de = readdir(dr)) != NULL)
-        {
-            if ((strcmp(de->d_name, ".") != 0) && (strcmp(de->d_name, "..") != 0))
-            {
-                printf("file name: %s; ", de->d_name);
-                strcpy(fileName, tagFile);
-                strcat(fileName, "/");
-                strcat(fileName, de->d_name);
-                fp = fopen(fileName, "r");
-                fscanf(fp, "%s", buff);
-                printf("location:%s\n", buff);
-            }
-        }
-
-        closedir(dr);
-    }
-}
-
 int remove_all_tag()
 {
 
@@ -146,7 +104,7 @@ int main(int argc, char *argv[])
     else if ((strcmp(argv[1], "search") == 0) || (strcmp(argv[1], "se") == 0))
     {
         printf("search \n");
-        // search_file_for_tag(argv[2]);
+        search_file_for_tag(argv[2]);
     }
     else if ((strcmp(argv[1], "list") == 0) || (strcmp(argv[1], "ls") == 0))
     {
@@ -214,15 +172,16 @@ char *get_tag_dir(char *tagName)
 }
 
 // note: remember to free *cwd
+// check if file exist before, this function wont check
 char *get_current_directory(char *fileName)
 {
+    char temp[1024];
+    getcwd(temp, sizeof(temp));
+
     char *cwd = (char *)malloc(1024 * sizeof(char));
-    getcwd(cwd, sizeof(cwd) * 1024);
-    if (fileName != NULL)
-    {
-        strcat(cwd, "/");
-        strcat(cwd, fileName);
-    }
+    strcpy(cwd, temp);
+    strcat(cwd, "/");
+    strcat(cwd, fileName);
 
     return cwd;
 }
@@ -265,9 +224,41 @@ void check_create_tag_folder(char *tagName)
     free(tagdir);
 }
 
-int ftwhelper(const char *name, const struct stat *status, int type)
+int ftwremove(const char *name, const struct stat *status, int type)
 {
     remove(name);
+    return 0;
+}
+
+int ftwsearch(const char *name, const struct stat *status, int type)
+{
+    if (type != FTW_D)
+    {
+        FILE *fp;
+        fp = fopen(name, "r");
+        fseek(fp, 0L, SEEK_END);
+        int filesize = ftell(fp);
+        fclose(fp);
+
+        int fd;
+        void *file_memory;
+        fd = open(name, O_RDWR, S_IRUSR | S_IWUSR);
+        file_memory = mmap(NULL, filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        close(fd);
+
+        char *filename = (char *)malloc(strlen(file_memory) * sizeof(char));
+        sscanf(file_memory, "%s", filename);
+        printf("    %s", filename);
+        file_memory += strlen(file_memory) + 5;
+        char *filepath = (char *)malloc(strlen(file_memory) * sizeof(char));
+        sscanf(file_memory, "%s", filepath);
+        printf("    %s\n", filepath);
+
+        free(filename);
+        free(filepath);
+        munmap(file_memory, filesize);
+    }
+
     return 0;
 }
 
@@ -293,8 +284,8 @@ void remove_tag(char *tagName)
 {
     char *tagdir = get_tag_dir(tagName);
 
-    ftw(tagdir, ftwhelper, 1);
-    ftw(tagdir, ftwhelper, 1);
+    ftw(tagdir, ftwremove, 1);
+    ftw(tagdir, ftwremove, 1);
 
     free(tagdir);
 }
@@ -302,7 +293,7 @@ void remove_tag(char *tagName)
 void add_to_file(char *fileName, char *tagName)
 {
     // check if file (in cwd) exist
-    struct stat fileStat;
+    struct stat fileStat = {0};
     if (stat(fileName, &fileStat) < 0)
     {
         printf("file %s does not exist\n", fileName);
@@ -342,9 +333,13 @@ void add_to_file(char *fileName, char *tagName)
     file_memory += strlen(fileName) + 5;
     sprintf((char *)file_memory, "%s\n", filepath);
 
+    printf("fn: %s\n", fileName);
+    printf("fp: %s\n", filepath);
+
     //release memory
     munmap(file_memory, filesize);
     free(filepath);
+    free(tagfile);
 }
 
 void remove_from_file(char *fileName, char *tagName)
@@ -372,7 +367,6 @@ void remove_from_file(char *fileName, char *tagName)
     free(tagfile);
 }
 
-
 void list_all_tags()
 {
     struct dirent *de;
@@ -393,4 +387,14 @@ void list_all_tags()
     }
 
     closedir(dr);
+}
+
+void search_file_for_tag(char *tagName)
+{
+
+    char *tagdir = get_tag_dir(tagName);
+
+    ftw(tagdir, ftwsearch, 1);
+
+    free(tagdir);
 }
