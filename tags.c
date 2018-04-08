@@ -387,6 +387,7 @@ void list_all_tags()
     }
 
     closedir(dr);
+    free(base_file);
 }
 
 void search_file_for_tag(char *tagName)
