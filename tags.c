@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
     if (strcmp(argv[1], "add") == 0 || strcmp(argv[1], "a") ==0)
     {
-        printf("add \n");
+        // printf("add \n");
         if (argc != 4)
         {
             printf("wrong input\n");
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     }
     else if ((strcmp(argv[1], "remove") == 0) || (strcmp(argv[1], "r") == 0))
     {
-        printf("remove \n");
+        // printf("remove \n");
         if (argc != 4)
         {
             printf("wrong input\n");
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     }
     else if ((strcmp(argv[1], "addtag") == 0) || (strcmp(argv[1], "at") == 0))
     {
-        printf("addtag \n");
+        // printf("addtag \n");
         if (argc != 3)
         {
             printf("wrong input\n");
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     }
     else if ((strcmp(argv[1], "removetag") == 0) || (strcmp(argv[1], "rt") == 0))
     {
-        printf("removetag \n");
+        // printf("removetag \n");
         if (argc != 3)
         {
             printf("wrong input\n");
@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
     }
     else if ((strcmp(argv[1], "search") == 0) || (strcmp(argv[1], "s") == 0))
     {
+        // printf("search");
         if (argc != 3)
         {
             printf("wrong input\n");
@@ -107,12 +108,12 @@ int main(int argc, char *argv[])
     {
         if (argc == 2)
         {
-            printf("list all tags \n");
+            // printf("list all tags \n");
             list_all_tags();
         }
         else if (argc == 3)
         {
-            printf("list tag of a file \n");
+            // printf("list tag of a file \n");
             list_tags_of_file(argv[2]);
         }
         else
@@ -123,7 +124,7 @@ int main(int argc, char *argv[])
     }
     else if ((strcmp(argv[1], "removealltags") == 0) || (strcmp(argv[1], "rat") == 0))
     {
-        printf("remove all tags \n");
+        // printf("remove all tags \n");
         remove_all_tag();
     }
     else
@@ -443,7 +444,7 @@ void list_tags_of_file(char *fileName)
     }
     else
     {
-        printf("%s : \n", fileName);
+        printf("%s: \n", fileName);
     }
 
     char *base = get_base_dir();
