@@ -11,17 +11,14 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-#define DEFAULT_TAGS_HOME = "/"
-#define DEFAULT_TAGS_DIR = ".tags"
-
 int usage();
 char *get_base_dir();
 char *get_tag_dir(char *tagName);
 void check_create_base_folder();
 void check_create_tag_folder(char *tagName);
 char *get_current_directory(char *fileName);
-bool tag_exists(char *tagName);
 int ftwremove(const char *name, const struct stat *status, int type);
+int ftwlistfile(const char *name, const struct stat *status, int type);
 int ftwsearch(const char *name, const struct stat *status, int type);
 
 //menu function
@@ -30,32 +27,14 @@ void remove_tag(char *tagName);
 void add_to_file(char *fileName, char *tagName);
 void remove_from_file(char *fileName, char *tagName);
 void list_all_tags();
+void list_tags_of_file(char *fileName);
 void search_file_for_tag(char *tagName);
+void remove_all_tag();
 
-// undone: curent progress
-
-// void list_tags_of_file();
-// void search();
+// note: check it before use it!!
+struct stat fileStat = {0};
 
 // undone: check and rename
-
-/*
-int remove_all_tag()
-{
-
-    struct dirent *de;
-    char *base_file = get_base_dir();
-    char cmd[256];
-    memset(cmd, '\0', sizeof(cmd));
-    strcpy(cmd, "rm -R ");
-    strcat(cmd, base_file);
-    strcat(cmd, "/*");
-    //printf("%s\n", cmd);
-    system(cmd);
-
-    return 0;
-}
-*/
 
 int main(int argc, char *argv[])
 {
@@ -69,7 +48,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    if (strcmp(argv[1], "add") == 0)
+    if (strcmp(argv[1], "add") == 0 || strcmp(argv[1], "a") ==0)
     {
         printf("add \n");
         if (argc != 4)
@@ -80,49 +59,76 @@ int main(int argc, char *argv[])
         }
         add_to_file(argv[2], argv[3]);
     }
-    else if ((strcmp(argv[1], "remove") == 0) || (strcmp(argv[1], "rm") == 0))
+    else if ((strcmp(argv[1], "remove") == 0) || (strcmp(argv[1], "r") == 0))
     {
         printf("remove \n");
         if (argc != 4)
         {
             printf("wrong input\n");
             usage();
-            return -1;
+            return 0;
         }
         remove_from_file(argv[2], argv[3]);
     }
     else if ((strcmp(argv[1], "addtag") == 0) || (strcmp(argv[1], "at") == 0))
     {
         printf("addtag \n");
+        if (argc != 3)
+        {
+            printf("wrong input\n");
+            usage();
+            return 0;
+        }
         add_tag(argv[2]);
     }
-    else if ((strcmp(argv[1], "removetag") == 0) || (strcmp(argv[1], "rmt") == 0))
+    else if ((strcmp(argv[1], "removetag") == 0) || (strcmp(argv[1], "rt") == 0))
     {
         printf("removetag \n");
+        if (argc != 3)
+        {
+            printf("wrong input\n");
+            usage();
+            return 0;
+        }
         remove_tag(argv[2]);
     }
-    else if ((strcmp(argv[1], "search") == 0) || (strcmp(argv[1], "se") == 0))
+    else if ((strcmp(argv[1], "search") == 0) || (strcmp(argv[1], "s") == 0))
     {
+        if (argc != 3)
+        {
+            printf("wrong input\n");
+            usage();
+            return 0;
+        }
         printf("search \n");
         search_file_for_tag(argv[2]);
     }
-    else if ((strcmp(argv[1], "list") == 0) || (strcmp(argv[1], "ls") == 0))
+    else if ((strcmp(argv[1], "list") == 0) || (strcmp(argv[1], "l") == 0))
     {
-        printf("list \n");
-        list_all_tags();
+        if (argc == 2)
+        {
+            printf("list all tags \n");
+            list_all_tags();
+        }
+        else if (argc == 3)
+        {
+            printf("list tag of a file \n");
+            list_tags_of_file(argv[2]);
+        }
+        else
+        {
+            printf("wrong input");
+            usage();
+        }
     }
-    else if (strcmp(argv[1], "exist") == 0)
-    {
-        printf("exist \n");
-        // tag_exists(argv[2]);
-    }
-    else if ((strcmp(argv[1], "removealltag") == 0) || (strcmp(argv[1], "rma") == 0))
+    else if ((strcmp(argv[1], "removealltags") == 0) || (strcmp(argv[1], "rat") == 0))
     {
         printf("remove all tags \n");
-        // remove_all_tag();
+        remove_all_tag();
     }
     else
     {
+        printf("wrong input");
         usage();
     }
 
@@ -131,15 +137,16 @@ int main(int argc, char *argv[])
 
 int usage()
 {
-    printf("Command not specified. \n"
-           "tags <option> <arguments> \n"
+    printf("tags <option> <arguments> \n"
            "Options: \n"
-           "    add <filename> <tagname>            - Link a tag with a file \n"
-           "    remove | rm <filename> <tagname>    - Remove a tag from file \n"
-           "    addtag | at <tagname>               - Create a new tag \n"
-           "    removetag | rmt <tagname>           - Delete a tag \n"
-           "    list | ls                           - List all tags or list for a file \n"
-           "    search <tagname>                    - Search all files with a tag name \n");
+           "    add | a <filename> <tagname>       - Link a tag with a file \n"
+           "    addtag | at <tagname>              - Create a new tag \n"
+           "    remove | r <filename> <tagname>    - Remove a tag from file \n"
+           "    removetag | rt <tagname>           - Delete a tag \n"
+           "    removealltag| rat                  - Remove all tags \n"
+           "    search | s <tagname>               - Search all files with a tag name \n"
+           "    list | l                           - List all tags \n"
+           "    list | l <tagname>                 - List all tags of a file \n");
     return 0;
 }
 
@@ -191,6 +198,7 @@ void check_create_base_folder()
     char *basedir = get_base_dir();
 
     struct stat st = {0};
+
     if (stat(basedir, &st) == -1)
     {
         int check = mkdir(basedir, 0777);
@@ -208,8 +216,8 @@ void check_create_base_folder()
 void check_create_tag_folder(char *tagName)
 {
     char *tagdir = get_tag_dir(tagName);
-
     struct stat st = {0};
+
     if (stat(tagdir, &st) == -1)
     {
         int check = mkdir(tagdir, 0777);
@@ -234,18 +242,24 @@ int ftwsearch(const char *name, const struct stat *status, int type)
 {
     if (type != FTW_D)
     {
+        // get file size
         FILE *fp;
         fp = fopen(name, "r");
         fseek(fp, 0L, SEEK_END);
         int filesize = ftell(fp);
         fclose(fp);
 
+        // read with mapped memory
         int fd;
         void *file_memory;
         fd = open(name, O_RDWR, S_IRUSR | S_IWUSR);
         file_memory = mmap(NULL, filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
         close(fd);
 
+        char *tagname = (char *)malloc(strlen(file_memory) * sizeof(char));
+        sscanf(file_memory, "%s", tagname);
+        printf("    %s", tagname);
+        file_memory += strlen(file_memory) + 5;
         char *filename = (char *)malloc(strlen(file_memory) * sizeof(char));
         sscanf(file_memory, "%s", filename);
         printf("    %s", filename);
@@ -254,6 +268,7 @@ int ftwsearch(const char *name, const struct stat *status, int type)
         sscanf(file_memory, "%s", filepath);
         printf("    %s\n", filepath);
 
+        free(tagname);
         free(filename);
         free(filepath);
         munmap(file_memory, filesize);
@@ -262,15 +277,44 @@ int ftwsearch(const char *name, const struct stat *status, int type)
     return 0;
 }
 
-bool tag_exists(char *tagName)
+int ftwlistfile(const char *name, const struct stat *status, int type)
 {
-    char *tagPath = get_tag_dir(tagName);
-    if (access(tagPath, F_OK) != -1)
+    if (type != FTW_D)
     {
-        return true;
+        int id = 0;
+        char idstr[30]; //id
+        id = fileStat.st_ino;
+        sprintf(idstr, "%d", id);
+
+        char tagfiledir[100];
+
+        strcpy(tagfiledir, name);
+        char *substring;
+        substring = strtok(tagfiledir, "/");
+
+        substring = strtok(NULL, "/");
+        substring = strtok(NULL, "/");
+        substring = strtok(NULL, "/");
+        substring = strtok(NULL, "/");
+
+        if (strcmp(substring, idstr) == 0)
+        {
+            int fd;
+            int filesize = 50;
+            void *file_memory;
+            fd = open(name, O_RDWR, S_IRUSR | S_IWUSR);
+            file_memory = mmap(NULL, filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+            close(fd);
+
+            char *tagname = (char *)malloc(strlen(file_memory) * sizeof(char));
+            sscanf(file_memory, "%s", tagname);
+            printf("    %s\n", tagname);
+
+            free(tagname);
+            munmap(file_memory, filesize);
+        }
     }
-    else
-        return false;
+    return 0;
 }
 
 /*  note: menu function list 
@@ -293,8 +337,9 @@ void remove_tag(char *tagName)
 void add_to_file(char *fileName, char *tagName)
 {
     // check if file (in cwd) exist
-    struct stat fileStat = {0};
-    if (stat(fileName, &fileStat) < 0)
+    struct stat st = {0};
+
+    if (stat(fileName, &st) < 0)
     {
         printf("file %s does not exist\n", fileName);
         return;
@@ -306,7 +351,7 @@ void add_to_file(char *fileName, char *tagName)
     int id = 0;
     char idstr[30]; //id
     char *filepath; //path
-    id = fileStat.st_ino;
+    id = st.st_ino;
     sprintf(idstr, "%d", id);
     filepath = get_current_directory(fileName);
 
@@ -319,7 +364,7 @@ void add_to_file(char *fileName, char *tagName)
     int fd;
     void *file_memory;
 
-    filesize = strlen(fileName) + strlen(filepath) + 10;
+    filesize = strlen(tagName) + strlen(fileName) + strlen(filepath) + 15;
     //update if exist, create if not
     fd = open(tagfile, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     for (int i = 0; i < filesize; i++)
@@ -328,13 +373,11 @@ void add_to_file(char *fileName, char *tagName)
     file_memory = mmap(NULL, filesize, PROT_WRITE, MAP_SHARED, fd, 0);
     close(fd);
 
+    sprintf((char *)file_memory, "%s\n", tagName);
+    file_memory += strlen(tagName) + 5; //note: important!! space between Name and path is 5!!
     sprintf((char *)file_memory, "%s\n", fileName);
-    //note: important!! space between Name and path is 5!!
     file_memory += strlen(fileName) + 5;
     sprintf((char *)file_memory, "%s\n", filepath);
-
-    printf("fn: %s\n", fileName);
-    printf("fp: %s\n", filepath);
 
     //release memory
     munmap(file_memory, filesize);
@@ -345,8 +388,9 @@ void add_to_file(char *fileName, char *tagName)
 void remove_from_file(char *fileName, char *tagName)
 {
     //check if file(in cwd) exists
-    struct stat fileStat;
-    if (stat(fileName, &fileStat) < 0)
+    struct stat st = {0};
+
+    if (stat(fileName, &st) < 0)
     {
         printf("file %s does not exist\n", fileName);
         return;
@@ -355,7 +399,7 @@ void remove_from_file(char *fileName, char *tagName)
     // get file (in cwd) info
     int id = 0;
     char idstr[30]; //id
-    id = fileStat.st_ino;
+    id = st.st_ino;
     sprintf(idstr, "%d", id);
 
     // path of file (in tag foldr)
@@ -390,12 +434,59 @@ void list_all_tags()
     free(base_file);
 }
 
+void list_tags_of_file(char *fileName)
+{
+    if (stat(fileName, &fileStat) < 0)
+    {
+        printf("file %s does not exist\n", fileName);
+        return;
+    }
+    else
+    {
+        printf("%s : \n", fileName);
+    }
+
+    char *base = get_base_dir();
+    ftw(base, ftwlistfile, 1);
+    free(base);
+}
+
 void search_file_for_tag(char *tagName)
 {
 
     char *tagdir = get_tag_dir(tagName);
-
     ftw(tagdir, ftwsearch, 1);
-
     free(tagdir);
+}
+
+void remove_all_tag()
+{
+
+    printf("Do you really want to delete all tags?  y/n  ");
+
+    char check[50];
+    scanf("%s", check);
+    if (strcmp(check, "y") == 0)
+    {
+        struct dirent *de;
+        char *base_file = get_base_dir();
+        char cmd[256];
+        memset(cmd, '\0', sizeof(cmd));
+        strcpy(cmd, "rm -R ");
+        strcat(cmd, base_file);
+        strcat(cmd, "/*");
+        system(cmd);
+        return;
+    }
+    else if (strcmp(check, "n") == 0)
+    {
+        return;
+    }
+    else
+    {
+        printf("wrong input.\n\n");
+        remove_all_tag();
+        return;
+    }
+    return;
 }
