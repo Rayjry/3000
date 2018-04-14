@@ -260,7 +260,7 @@ int ftwsearch(const char *name, const struct stat *status, int type)
         char *tagname = (char *)malloc(strlen(file_memory) * sizeof(char));
         sscanf(file_memory, "%s", tagname);
         printf("    %s", tagname);
-        file_memory += strlen(file_memory) + 5;
+        file_memory += strlen(file_memory) + 4;
         char *filename = (char *)malloc(strlen(file_memory) * sizeof(char));
         sscanf(file_memory, "%s", filename);
         printf("    %s", filename);
